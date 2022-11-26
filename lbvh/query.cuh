@@ -3,6 +3,61 @@
 #include "predicator.cuh"
 
 namespace lbvh {
+// query object indices that intersects with query line.
+//
+// requirements:
+// - OutputIterator should be writable and its object_type should be uint32_t
+//
+template <
+    typename Real, unsigned int dim, typename Objects, bool IsConst, typename OutputIterator,
+    typename IntersectionTestFunc>
+__device__ unsigned int query_device(
+    const detail::basic_device_bvh<Real, dim, Objects, IsConst> &bvh, const query_line_intersect<Real, dim> q,
+    IntersectionTestFunc element_intersects, OutputIterator outiter, const unsigned int max_buffer_size
+) noexcept {
+    using bvh_type = detail::basic_device_bvh<Real, dim, Objects, IsConst>;
+    using index_type = typename bvh_type::index_type;
+    using aabb_type = typename bvh_type::aabb_type;
+    using node_type = typename bvh_type::node_type;
+
+    index_type stack[64]; // is it okay?
+    index_type *stack_ptr = stack;
+    *stack_ptr++ = 0; // root node is always 0
+
+    unsigned int num_found = 0;
+    do {
+        const index_type node = *--stack_ptr;
+        const index_type L_idx = bvh.nodes[node].left_idx;
+        const index_type R_idx = bvh.nodes[node].right_idx;
+
+        if (intersects(q.line, bvh.aabbs[L_idx])) {
+            const auto obj_idx = bvh.nodes[L_idx].object_idx;
+            if (obj_idx != 0xFFFFFFFF) {
+                if (element_intersects(q.line, bvh.objects[obj_idx])) {
+                    if (num_found < max_buffer_size) { *outiter++ = obj_idx; }
+                    ++num_found;
+                }
+            } else // the node is not a leaf.
+            {
+                *stack_ptr++ = L_idx;
+            }
+        }
+        if (intersects(q.line, bvh.aabbs[R_idx])) {
+            const auto obj_idx = bvh.nodes[R_idx].object_idx;
+            if (obj_idx != 0xFFFFFFFF) {
+                if (element_intersects(q.line, bvh.objects[obj_idx])) {
+                    if (num_found < max_buffer_size) { *outiter++ = obj_idx; }
+                    ++num_found;
+                }
+            } else // the node is not a leaf.
+            {
+                *stack_ptr++ = R_idx;
+            }
+        }
+    } while (stack < stack_ptr);
+    return num_found;
+}
+
 // query object indices that potentially overlaps with query aabb.
 //
 // requirements:
@@ -127,6 +182,64 @@ __device__ thrust::pair<unsigned int, Real> query_device(
         assert(stack_ptr < stack + 64);
     } while (stack < stack_ptr);
     return thrust::make_pair(nearest, dist_to_nearest_object);
+}
+
+// query object indices that intersects with query line.
+//
+// requirements:
+// - OutputIterator should be writable and its object_type should be uint32_t
+//
+template <
+    typename Real, unsigned int dim, typename Objects, typename AABBGetter, typename MortonCodeCalculator,
+    typename OutputIterator, typename IntersectionTestFunc>
+__device__ unsigned int query_host(
+    const bvh<Real, dim, Objects, AABBGetter, MortonCodeCalculator> &tree, const query_line_intersect<Real, dim> q,
+    IntersectionTestFunc element_intersects, OutputIterator outiter, const unsigned int max_buffer_size = 64
+) noexcept {
+    using bvh_type = ::lbvh::bvh<Real, dim, Objects, AABBGetter, MortonCodeCalculator>;
+    using index_type = typename bvh_type::index_type;
+    using aabb_type = typename bvh_type::aabb_type;
+    using node_type = typename bvh_type::node_type;
+
+    if (!tree.query_host_enabled()) { throw std::runtime_error("lbvh::bvh query_host is not enabled"); }
+
+    std::vector<std::size_t> stack;
+    stack.reserve(64);
+    stack.push_back(0);
+
+    unsigned int num_found = 0;
+    do {
+        const index_type node = stack.back();
+        stack.pop_back();
+        const index_type L_idx = tree.nodes_host()[node].left_idx;
+        const index_type R_idx = tree.nodes_host()[node].right_idx;
+
+        if (intersects(q.line, tree.aabbs_host()[L_idx])) {
+            const auto obj_idx = tree.nodes_host()[L_idx].object_idx;
+            if (obj_idx != 0xFFFFFFFF) {
+                if (element_intersects(q.line, tree.objects_host()[obj_idx])) {
+                    if (num_found < max_buffer_size) { *outiter++ = obj_idx; }
+                    ++num_found;
+                }
+            } else // the node is not a leaf.
+            {
+                stack.push_back(L_idx);
+            }
+        }
+        if (intersects(q.line, tree.aabbs_host()[R_idx])) {
+            const auto obj_idx = tree.nodes_host()[R_idx].object_idx;
+            if (obj_idx != 0xFFFFFFFF) {
+                if (element_intersects(q.line, tree.objects_host()[obj_idx])) {
+                    if (num_found < max_buffer_size) { *outiter++ = obj_idx; }
+                    ++num_found;
+                }
+            } else // the node is not a leaf.
+            {
+                stack.push_back(R_idx);
+            }
+        }
+    } while (!stack.empty());
+    return num_found;
 }
 
 template <
