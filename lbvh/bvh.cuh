@@ -171,6 +171,48 @@ template <typename Real, unsigned int dim, typename Object> struct default_morto
     aabb<Real, dim> whole;
 };
 
+template <typename Real, typename Object> struct default_morton_code_calculator<Real, 2, Object> {
+    default_morton_code_calculator(aabb<Real, 2> w) : whole(w) {}
+    default_morton_code_calculator() = default;
+    ~default_morton_code_calculator() = default;
+    default_morton_code_calculator(default_morton_code_calculator const &) = default;
+    default_morton_code_calculator(default_morton_code_calculator &&) = default;
+    default_morton_code_calculator &operator=(default_morton_code_calculator const &) = default;
+    default_morton_code_calculator &operator=(default_morton_code_calculator &&) = default;
+
+    __device__ __host__ inline unsigned int operator()(const Object &, const aabb<Real, 2> &box) noexcept {
+        auto p = centroid(box);
+        p.x -= whole.lower.x;
+        p.y -= whole.lower.y;
+        p.x /= (whole.upper.x - whole.lower.x);
+        p.y /= (whole.upper.y - whole.lower.y);
+        return morton_code(p);
+    }
+    aabb<Real, 2> whole;
+};
+
+template <typename Real, typename Object> struct default_morton_code_calculator<Real, 3, Object> {
+    default_morton_code_calculator(aabb<Real, 3> w) : whole(w) {}
+    default_morton_code_calculator() = default;
+    ~default_morton_code_calculator() = default;
+    default_morton_code_calculator(default_morton_code_calculator const &) = default;
+    default_morton_code_calculator(default_morton_code_calculator &&) = default;
+    default_morton_code_calculator &operator=(default_morton_code_calculator const &) = default;
+    default_morton_code_calculator &operator=(default_morton_code_calculator &&) = default;
+
+    __device__ __host__ inline unsigned int operator()(const Object &, const aabb<Real, 3> &box) noexcept {
+        auto p = centroid(box);
+        p.x -= whole.lower.x;
+        p.y -= whole.lower.y;
+        p.z -= whole.lower.z;
+        p.x /= (whole.upper.x - whole.lower.x);
+        p.y /= (whole.upper.y - whole.lower.y);
+        p.z /= (whole.upper.z - whole.lower.z);
+        return morton_code(p);
+    }
+    aabb<Real, 3> whole;
+};
+
 template <typename Real, unsigned int dim, typename Object>
 using bvh_device = detail::basic_device_bvh<Real, dim, Object, false>;
 template <typename Real, unsigned int dim, typename Object>
