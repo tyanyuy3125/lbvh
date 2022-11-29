@@ -1,6 +1,5 @@
 #ifndef LBVH_UTILITY_CUH
 #define LBVH_UTILITY_CUH
-#include <Eigen/Core>
 #include <math_constants.h>
 #include <vector_types.h>
 
