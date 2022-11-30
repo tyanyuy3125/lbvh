@@ -33,8 +33,11 @@ __device__ unsigned int query_device(
         if (intersects(q.line, bvh.aabbs[L_idx])) {
             const auto obj_idx = bvh.nodes[L_idx].object_idx;
             if (obj_idx != 0xFFFFFFFF) {
-                if (element_intersects(q.line, bvh.objects[obj_idx])) {
-                    if (num_found < max_buffer_size) { *outiter++ = obj_idx; }
+                auto flag_data = element_intersects(q.line, bvh.objects[obj_idx]);
+                if (flag_data.first) {
+                    if (num_found < max_buffer_size) {
+                        *outiter++ = thrust::pair<unsigned int, decltype(flag_data.second)>(obj_idx, flag_data.second);
+                    }
                     ++num_found;
                 }
             } else // the node is not a leaf.
@@ -45,8 +48,11 @@ __device__ unsigned int query_device(
         if (intersects(q.line, bvh.aabbs[R_idx])) {
             const auto obj_idx = bvh.nodes[R_idx].object_idx;
             if (obj_idx != 0xFFFFFFFF) {
-                if (element_intersects(q.line, bvh.objects[obj_idx])) {
-                    if (num_found < max_buffer_size) { *outiter++ = obj_idx; }
+                auto flag_data = element_intersects(q.line, bvh.objects[obj_idx]);
+                if (flag_data.first) {
+                    if (num_found < max_buffer_size) {
+                        *outiter++ = thrust::pair<unsigned int, decltype(flag_data.second)>(obj_idx, flag_data.second);
+                    }
                     ++num_found;
                 }
             } else // the node is not a leaf.

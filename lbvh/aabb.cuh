@@ -195,18 +195,12 @@ template <typename T, unsigned int dim> struct Line {
 template <typename T>
 __device__ __host__ inline bool intersects(const Line<T, 3> &line, const aabb<T, 3> &aabb) noexcept {
     constexpr T eps = std::numeric_limits<T>::epsilon();
-    float t1 = (aabb.lower.x - line.origin.x) /
-               ((-eps <= line.direction.x && line.direction.direction.x <= eps) ? eps : line.direction.x);
-    float t2 = (aabb.upper.x - line.origin.x) /
-               ((-eps <= line.direction.x && line.direction.direction.x <= eps) ? eps : line.direction.x);
-    float t3 = (aabb.lower.y - line.origin.y) /
-               ((-eps <= line.direction.y && line.direction.direction.y <= eps) ? eps : line.direction.y);
-    float t4 = (aabb.upper.y - line.origin.y) /
-               ((-eps <= line.direction.y && line.direction.direction.y <= eps) ? eps : line.direction.y);
-    float t5 = (aabb.lower.z - line.origin.z) /
-               ((-eps <= line.direction.z && line.direction.direction.z <= eps) ? eps : line.direction.z);
-    float t6 = (aabb.upper.z - line.origin.z) /
-               ((-eps <= line.direction.z && line.direction.direction.z <= eps) ? eps : line.direction.z);
+    float t1 = (aabb.lower.x - line.origin.x) / ((-eps <= line.dir.x && line.dir.x <= eps) ? eps : line.dir.x);
+    float t2 = (aabb.upper.x - line.origin.x) / ((-eps <= line.dir.x && line.dir.x <= eps) ? eps : line.dir.x);
+    float t3 = (aabb.lower.y - line.origin.y) / ((-eps <= line.dir.y && line.dir.y <= eps) ? eps : line.dir.y);
+    float t4 = (aabb.upper.y - line.origin.y) / ((-eps <= line.dir.y && line.dir.y <= eps) ? eps : line.dir.y);
+    float t5 = (aabb.lower.z - line.origin.z) / ((-eps <= line.dir.z && line.dir.z <= eps) ? eps : line.dir.z);
+    float t6 = (aabb.upper.z - line.origin.z) / ((-eps <= line.dir.z && line.dir.z <= eps) ? eps : line.dir.z);
 
     float tmin = fmax(fmax(fmin(t1, t2), fmin(t3, t4)), fmin(t5, t6));
     float tmax = fmin(fmin(fmax(t1, t2), fmax(t3, t4)), fmax(t5, t6));
@@ -218,14 +212,10 @@ __device__ __host__ inline bool intersects(const Line<T, 3> &line, const aabb<T,
 template <typename T>
 __device__ __host__ inline bool intersects(const Line<T, 2> &line, const aabb<T, 2> &aabb) noexcept {
     constexpr T eps = std::numeric_limits<T>::epsilon();
-    float t1 = (aabb.lower.x - line.origin.x) /
-               ((-eps <= line.direction.x && line.direction.direction.x <= eps) ? eps : line.direction.x);
-    float t2 = (aabb.upper.x - line.origin.x) /
-               ((-eps <= line.direction.x && line.direction.direction.x <= eps) ? eps : line.direction.x);
-    float t3 = (aabb.lower.y - line.origin.y) /
-               ((-eps <= line.direction.y && line.direction.direction.y <= eps) ? eps : line.direction.y);
-    float t4 = (aabb.upper.y - line.origin.y) /
-               ((-eps <= line.direction.y && line.direction.direction.y <= eps) ? eps : line.direction.y);
+    float t1 = (aabb.lower.x - line.origin.x) / ((-eps <= line.dir.x && line.dir.x <= eps) ? eps : line.dir.x);
+    float t2 = (aabb.upper.x - line.origin.x) / ((-eps <= line.dir.x && line.dir.x <= eps) ? eps : line.dir.x);
+    float t3 = (aabb.lower.y - line.origin.y) / ((-eps <= line.dir.y && line.dir.y <= eps) ? eps : line.dir.y);
+    float t4 = (aabb.upper.y - line.origin.y) / ((-eps <= line.dir.y && line.dir.y <= eps) ? eps : line.dir.y);
 
     float tmin = fmax(fmin(t1, t2), fmin(t3, t4));
     float tmax = fmin(fmax(t1, t2), fmax(t3, t4));

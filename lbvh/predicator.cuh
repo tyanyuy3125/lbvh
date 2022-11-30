@@ -7,7 +7,7 @@ namespace lbvh {
 template <typename Real, unsigned int dim> struct query_line_intersect {
     using vector_type = typename vector_of<Real, dim>::type;
 
-    __device__ __host__ query_line_intersect(const Line<Real, dim> &Line) : line(line) {}
+    __device__ __host__ query_line_intersect(const Line<Real, dim> &line) : line(line) {}
 
     query_line_intersect() = default;
     ~query_line_intersect() = default;
@@ -16,7 +16,7 @@ template <typename Real, unsigned int dim> struct query_line_intersect {
     query_line_intersect &operator=(const query_line_intersect &) = default;
     query_line_intersect &operator=(query_line_intersect &&) = default;
 
-    vector_type line;
+    Line<Real, dim> line;
 };
 
 template <typename Real, unsigned int dim> struct query_overlap {
