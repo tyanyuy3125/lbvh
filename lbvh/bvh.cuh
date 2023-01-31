@@ -17,6 +17,7 @@
 #include <thrust/swap.h>
 #include <thrust/transform.h>
 #include <thrust/tuple.h>
+#include <thrust/unique.h>
 
 namespace lbvh {
 namespace detail {
@@ -303,7 +304,7 @@ class bvh {
 
         const auto aabb_whole = thrust::reduce(
             aabbs_.begin() + num_internal_nodes, aabbs_.end(), default_aabb,
-            [] __device__(const aabb_type &lhs, const aabb_type &rhs) { return merge(lhs, rhs); }
+            [] __host__ __device__(const aabb_type &lhs, const aabb_type &rhs) { return merge(lhs, rhs); }
         );
 
         thrust::device_vector<unsigned int> morton(num_objects);
