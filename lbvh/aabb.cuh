@@ -189,39 +189,50 @@ __device__ __host__ inline typename vector_of<T, 3>::type centroid(const aabb<T,
 template <typename T, unsigned int dim> struct Line {
     typename vector_of<T, dim>::type origin;
     typename vector_of<T, dim>::type dir;
+    typename vector_of<T, dim>::type dir_inv;
+    __host__ __device__ Line(const typename vector_of<T, dim>::type& origin, const typename vector_of<T, dim>::type& dir)
+        : origin(origin), dir(dir) {
+        dir_inv.x = 1/dir.x;
+        dir_inv.y = 1/dir.y; 
+        if constexpr (dim==3) dir_inv.z = 1/dir.z;
+    };
 };
 
-// refeence: https://github.com/gszauer/GamePhysicsCookbook/blob/master/Code/Geometry3D.cpp
+// reference: https://tavianator.com/2015/ray_box_nan.html
+// Note we use fmin and fmax in the implementaitons below, which always suppress NaN whenever possible.
 template <typename T>
 __device__ __host__ inline bool intersects(const Line<T, 3> &line, const aabb<T, 3> &aabb) noexcept {
-    constexpr T eps = std::numeric_limits<T>::epsilon();
-    T t1 = (aabb.lower.x - line.origin.x) / ((-eps <= line.dir.x && line.dir.x <= eps) ? eps : line.dir.x);
-    T t2 = (aabb.upper.x - line.origin.x) / ((-eps <= line.dir.x && line.dir.x <= eps) ? eps : line.dir.x);
-    T t3 = (aabb.lower.y - line.origin.y) / ((-eps <= line.dir.y && line.dir.y <= eps) ? eps : line.dir.y);
-    T t4 = (aabb.upper.y - line.origin.y) / ((-eps <= line.dir.y && line.dir.y <= eps) ? eps : line.dir.y);
-    T t5 = (aabb.lower.z - line.origin.z) / ((-eps <= line.dir.z && line.dir.z <= eps) ? eps : line.dir.z);
-    T t6 = (aabb.upper.z - line.origin.z) / ((-eps <= line.dir.z && line.dir.z <= eps) ? eps : line.dir.z);
+    T t1 = (aabb.lower.x - line.origin.x) * line.dir_inv.x;
+    T t2 = (aabb.upper.x - line.origin.x) * line.dir_inv.x;
+    T tmin = fmin(t1, t2);
+    T tmax = fmax(t1, t2);
 
-    T tmin = fmax(fmax(fmin(t1, t2), fmin(t3, t4)), fmin(t5, t6));
-    T tmax = fmin(fmin(fmax(t1, t2), fmax(t3, t4)), fmax(t5, t6));
+    t1 = (aabb.lower.y - line.origin.y) * line.dir_inv.y;
+    t2 = (aabb.upper.y - line.origin.y) * line.dir_inv.y;
+    tmin = fmax(tmin, fmin(t1, t2));
+    tmax = fmin(tmax, fmax(t1, t2));
 
-    if (tmin > tmax) return false;
-    return true;
+    t1 = (aabb.lower.z - line.origin.z) * line.dir_inv.z;
+    t2 = (aabb.upper.z - line.origin.z) * line.dir_inv.z;
+    tmin = fmax(tmin, fmin(t1, t2));
+    tmax = fmin(tmax, fmax(t1, t2));
+
+    return tmax > tmin; // we should not add "&& tmax > 0" becasue this is line intersection, not ray intersection.
 }
 
 template <typename T>
 __device__ __host__ inline bool intersects(const Line<T, 2> &line, const aabb<T, 2> &aabb) noexcept {
-    constexpr T eps = std::numeric_limits<T>::epsilon();
-    T t1 = (aabb.lower.x - line.origin.x) / ((-eps <= line.dir.x && line.dir.x <= eps) ? eps : line.dir.x);
-    T t2 = (aabb.upper.x - line.origin.x) / ((-eps <= line.dir.x && line.dir.x <= eps) ? eps : line.dir.x);
-    T t3 = (aabb.lower.y - line.origin.y) / ((-eps <= line.dir.y && line.dir.y <= eps) ? eps : line.dir.y);
-    T t4 = (aabb.upper.y - line.origin.y) / ((-eps <= line.dir.y && line.dir.y <= eps) ? eps : line.dir.y);
+    T t1 = (aabb.lower.x - line.origin.x) * line.dir_inv.x;
+    T t2 = (aabb.upper.x - line.origin.x) * line.dir_inv.x;
+    T tmin = fmin(t1, t2);
+    T tmax = fmax(t1, t2);
 
-    T tmin = fmax(fmin(t1, t2), fmin(t3, t4));
-    T tmax = fmin(fmax(t1, t2), fmax(t3, t4));
+    t1 = (aabb.lower.y - line.origin.y) * line.dir_inv.y;
+    t2 = (aabb.upper.y - line.origin.y) * line.dir_inv.y;
+    tmin = fmax(tmin, fmin(t1, t2));
+    tmax = fmin(tmax, fmax(t1, t2));
 
-    if (tmin > tmax) return false;
-    return true;
+    return tmax > tmin; // we should not add "&& tmax > 0" becasue this is line intersection, not ray intersection.
 }
 
 } // namespace lbvh
