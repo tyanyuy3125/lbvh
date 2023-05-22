@@ -190,11 +190,12 @@ template <typename T, unsigned int dim> struct Line {
     typename vector_of<T, dim>::type origin;
     typename vector_of<T, dim>::type dir;
     typename vector_of<T, dim>::type dir_inv;
-    __host__ __device__ Line(const typename vector_of<T, dim>::type& origin, const typename vector_of<T, dim>::type& dir)
+    __host__ __device__
+    Line(const typename vector_of<T, dim>::type &origin, const typename vector_of<T, dim>::type &dir)
         : origin(origin), dir(dir) {
-        dir_inv.x = 1/dir.x;
-        dir_inv.y = 1/dir.y; 
-        if constexpr (dim==3) dir_inv.z = 1/dir.z;
+        dir_inv.x = 1 / dir.x;
+        dir_inv.y = 1 / dir.y;
+        if constexpr (dim == 3) dir_inv.z = 1 / dir.z;
     };
 };
 
@@ -217,7 +218,7 @@ __device__ __host__ inline bool intersects(const Line<T, 3> &line, const aabb<T,
     tmin = fmax(tmin, fmin(t1, t2));
     tmax = fmin(tmax, fmax(t1, t2));
 
-    return tmax > tmin; // we should not add "&& tmax > 0" becasue this is line intersection, not ray intersection.
+    return tmax >= tmin; // we should not add "&& tmax > 0" becasue this is line intersection, not ray intersection.
 }
 
 template <typename T>
@@ -232,7 +233,7 @@ __device__ __host__ inline bool intersects(const Line<T, 2> &line, const aabb<T,
     tmin = fmax(tmin, fmin(t1, t2));
     tmax = fmin(tmax, fmax(t1, t2));
 
-    return tmax > tmin; // we should not add "&& tmax > 0" becasue this is line intersection, not ray intersection.
+    return tmax >= tmin; // we should not add "&& tmax > 0" becasue this is line intersection, not ray intersection.
 }
 
 } // namespace lbvh
