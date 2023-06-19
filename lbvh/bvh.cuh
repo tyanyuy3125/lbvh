@@ -394,7 +394,7 @@ class bvh {
                 unsigned int parent = self.nodes[idx].parent_idx;
                 while (parent != 0xFFFFFFFF) // means idx == 0
                 {
-#ifdef __CUDA_ARCH__
+#ifdef __CUDACC__
                     const int old = atomicCAS(flags + parent, 0, 1);
 #else
                     int old;

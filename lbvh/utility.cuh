@@ -1,7 +1,7 @@
 #ifndef LBVH_UTILITY_CUH
 #define LBVH_UTILITY_CUH
 #include <limits>
-#ifdef __CUDA_ARCH__
+#ifdef __CUDACC__
 #include <math_constants.h>
 #include <vector_types.h>
 #else
@@ -48,18 +48,10 @@ double4 make_double4(double x, double y, double z, double w) { return {x, y, z, 
 namespace lbvh {
 
 template <typename T, unsigned int dim> struct vector_of;
-template <> struct vector_of<float, 2> {
-    using type = float2;
-};
-template <> struct vector_of<double, 2> {
-    using type = double2;
-};
-template <> struct vector_of<float, 3> {
-    using type = float4;
-};
-template <> struct vector_of<double, 3> {
-    using type = double4;
-};
+template <> struct vector_of<float, 2> { using type = float2; };
+template <> struct vector_of<double, 2> { using type = double2; };
+template <> struct vector_of<float, 3> { using type = float4; };
+template <> struct vector_of<double, 3> { using type = double4; };
 
 template <typename T, unsigned int dim> using vector_of_t = typename vector_of<T, dim>::type;
 
