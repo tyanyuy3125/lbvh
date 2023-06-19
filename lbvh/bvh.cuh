@@ -394,7 +394,16 @@ class bvh {
                 unsigned int parent = self.nodes[idx].parent_idx;
                 while (parent != 0xFFFFFFFF) // means idx == 0
                 {
+#ifdef __CUDA_ARCH__
                     const int old = atomicCAS(flags + parent, 0, 1);
+#else
+                    int old;
+#pragma omp critical
+                    {
+                        old = *(flags + parent);
+                        if (old == 0) *(flags + parent) = 1;
+                    }
+#endif
                     if (old == 0) {
                         // this is the first thread entered here.
                         // wait the other thread from the other child node.

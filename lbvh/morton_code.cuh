@@ -1,8 +1,7 @@
 #ifndef LBVH_MORTON_CODE_CUH
 #define LBVH_MORTON_CODE_CUH
+#include "utility.cuh"
 #include <cstdint>
-#include <cuda_runtime.h>
-#include <vector_types.h>
 
 namespace lbvh {
 
@@ -55,10 +54,18 @@ __device__ __host__ inline std::uint32_t morton_code(double2 xyz, double resolut
 }
 
 __device__ inline int common_upper_bits(const unsigned int lhs, const unsigned int rhs) noexcept {
+#ifdef __CUDA_ARCH__
     return ::__clz(lhs ^ rhs);
+#else
+    return std::__countl_zero(lhs ^ rhs);
+#endif
 }
 __device__ inline int common_upper_bits(const unsigned long long int lhs, const unsigned long long int rhs) noexcept {
+#ifdef __CUDA_ARCH__
     return ::__clzll(lhs ^ rhs);
+#else
+    return std::__countl_zero(lhs ^ rhs);
+#endif
 }
 
 } // namespace lbvh
