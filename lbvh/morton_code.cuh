@@ -1,6 +1,7 @@
 #ifndef LBVH_MORTON_CODE_CUH
 #define LBVH_MORTON_CODE_CUH
 #include "utility.cuh"
+#include <bit>
 #include <cstdint>
 
 namespace lbvh {
@@ -57,14 +58,14 @@ __device__ inline int common_upper_bits(const unsigned int lhs, const unsigned i
 #ifdef __CUDACC__
     return ::__clz(lhs ^ rhs);
 #else
-    return std::__countl_zero(lhs ^ rhs);
+    return std::countl_zero(lhs ^ rhs);
 #endif
 }
 __device__ inline int common_upper_bits(const unsigned long long int lhs, const unsigned long long int rhs) noexcept {
 #ifdef __CUDACC__
     return ::__clzll(lhs ^ rhs);
 #else
-    return std::__countl_zero(lhs ^ rhs);
+    return std::countl_zero(lhs ^ rhs);
 #endif
 }
 
