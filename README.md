@@ -1,5 +1,16 @@
 # LBVH
 
+This repository is a modified version of lbvh library originally authored by [ToruNiina](https://github.com/ToruNiina/lbvh). In addition to the original version, I, rsugimoto, added a few functionalities, including:
+- Support of line intersection query,
+- Support of 2d line primitives, and
+- Support of OpenMP backend.
+    
+The documentation below is not updated from the original version and the main.cu file will not compile now due to the modifications above. Those who are interested in the usage can refer to [WoBToolbox](https://github.com/rsugimoto/WoBToolbox).
+
+Below this line is the content of original documentation kept for reference.
+
+ --------
+
 An implementation of the following paper
 
 - Tero Karras, "Maximizing Parallelism in the Construction of BVHs, Octrees, and k-d Trees", High Performance Graphics (2012)
